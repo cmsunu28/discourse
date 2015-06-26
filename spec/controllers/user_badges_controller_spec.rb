@@ -97,6 +97,13 @@ describe UserBadgesController do
       expect(user_badge).to be_present
       expect(user_badge.granted_by).to eq(Discourse.system_user)
     end
+
+    it 'will trigger :user_badge_granted' do
+      log_in :admin
+
+      DiscourseEvent.expects(:trigger).with(:user_badge_granted, anything, anything).once
+      xhr :post, :create, badge_id: badge.id, username: user.username
+    end
   end
 
   context 'destroy' do
@@ -113,6 +120,12 @@ describe UserBadgesController do
       xhr :delete, :destroy, id: user_badge.id
       expect(response.status).to eq(200)
       expect(UserBadge.find_by(id: user_badge.id)).to eq(nil)
+    end
+
+    it 'will trigger :user_badge_removed' do
+      log_in :admin
+      DiscourseEvent.expects(:trigger).with(:user_badge_removed, anything, anything).once
+      xhr :delete, :destroy, id: user_badge.id
     end
   end
 end
